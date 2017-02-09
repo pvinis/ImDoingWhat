@@ -1,0 +1,13 @@
+{
+  "name": "ImDoingWhat",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native-macos/local-cli/cli.js start"
+  },
+  "dependencies": {
+    "moment": "^2.17.1",
+    "react": "15.3.2",
+    "react-native-macos": "^0.12.0-rc.1"
+  }
+}
