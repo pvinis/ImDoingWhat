@@ -145,14 +145,26 @@ class ImDoingWhat extends React.Component {
   }
 }
 
+const Colors = {
+  Background: '#2d2d2d',
+  LightBackground: '#393939',
+  Foreground:  '#f2f0ec',
+  Blue:       '#6699cc',
+  Red:        '#f2777a',
+  Orange:        '#ffcc66',
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    backgroundColor: 'darkgrey',
+    backgroundColor: Colors.Background,
+    borderWidth: 2,
+    borderColor: Colors.Red,
   },
+
   task: {
     flex: 1,
     fontSize: 30,
@@ -161,13 +173,18 @@ const styles = StyleSheet.create({
     margin: 10,
     marginLeft: 70,
     alignSelf: 'center',
+    backgroundColor: Colors.LightBackground,
+    color: Colors.Foreground,
   },
+
   timer: {
     width: 70,
     fontSize: 20,
     textAlign: 'center',
     margin: 10,
+    color: Colors.Blue,
   },
+
   button: {
     width: 80,
   }
