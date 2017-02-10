@@ -6,6 +6,7 @@
  import ReactNative from 'react-native-macos';
  const {
    AppRegistry,
+   AsyncStorage,
    Button,
    NativeEventEmitter,
    StyleSheet,
@@ -18,6 +19,8 @@ import moment from 'moment'
 
 import TimerManager from './TimerManager'
 
+const STORAGE_TASK = '@ImDoingWhat:task'
+
 class ImDoingWhat extends React.Component {
 
   constructor(props) {
@@ -28,27 +31,80 @@ class ImDoingWhat extends React.Component {
     this.state = {
       task: "",
       startTime: null,
-      currTime: null,
+      secondsPassed: 0,
+      dbg: "start",
+      started: false,
+      paused: false,
     }
   }
 
-  _startTimer() {
+  componentDidMount() {
     const TimerManagerEventEmitter = new NativeEventEmitter(TimerManager)
-    if (this.timerSubscription) {
-      this.timerSubscription.remove()
-    }
     this.timerSubscription = TimerManagerEventEmitter.addListener('tick', this._increaseSecondsPassed)
     TimerManager.start(1000)
+
+    this._loadFromStorage().done()
   }
 
-  _stopTimer() {
+  componentWillUnmount() {
     TimerManager.stop()
     this.timerSubscription.remove()
   }
 
-  _increaseSecondsPassed = () => {
+  _loadFromStorage = async () => {
+    this.setState({dbg: "loading"})
+    try {
+     const task = await AsyncStorage.getItem(STORAGE_TASK)
+      if (task) {
+        this.setState({
+          task,
+        })
+        this.setState({dbg: "did load"})
+      }
+    } catch (error) {
+      this.setState({dbg: "didnt load"})
+    }
+  }
+
+  _saveToStorage = async (task) => {
+    this.setState({dbg: "saving"})
+    try {
+      await AsyncStorage.setItem(STORAGE_TASK, task)
+      this.setState({dbg: "did save"})
+    } catch (error) {
+      this.setState({dbg: "didnt save"})
+    }
+  }
+
+  _startTimer() {
     this.setState({
-      currTime: +new Date(),
+      started: true,
+    })
+  }
+
+  _pauseTimer() {
+    if (!this.state.started) return
+
+    this.setState({
+      paused: !this.state.paused,
+    })
+  }
+
+  _stopTimer() {
+    this.setState({
+      started: false,
+      secondsPassed: 0,
+    })
+  }
+
+  _increaseSecondsPassed = () => {
+    if (!this.state.started) return
+    if (this.state.paused) return
+
+    const { secondsPassed } = this.state
+
+    this.setState({
+      secondsPassed: secondsPassed + 1,
     })
   }
 
@@ -57,20 +113,13 @@ class ImDoingWhat extends React.Component {
       task: text,
       startTime: +new Date(),
     })
-    this._startTimer()
   }
 
-  _timeSinceStart() {
-    const { startTime, currTime } = this.state
-    const zero = "00:00"
+  _timeFormat() {
+    const { secondsPassed } = this.state
 
-    if (startTime === null || currTime === null) return zero
-
-    const diffSec = (currTime - startTime) / 1000
-    if (diffSec < 0) return zero
-
-    const timeSinceStart = moment.unix(diffSec).utc().format('HH:mm:ss').replace(/^00:/, '')
-    return timeSinceStart
+    const timeFormat = moment.unix(secondsPassed).utc().format('HH:mm:ss').replace(/^00:/, '')
+    return timeFormat
   }
 
   render() {
@@ -78,11 +127,19 @@ class ImDoingWhat extends React.Component {
       <View style={styles.container}>
         <TextInput
           style={styles.task}
-          onChange={(text) => this._setTask(text) }
         />
         <Text style={styles.timer}>
-          {this._timeSinceStart()}
+          {this._timeFormat()}
         </Text>
+        <Button style={styles.button} title='start'
+          onClick={() => this._startTimer()}
+        />
+        <Button style={styles.button} title={this.state.paused ? 'resume' : 'pause'}
+          onClick={() => this._pauseTimer()}
+        />
+        <Button style={styles.button} title='stop'
+          onClick={() => this._stopTimer()}
+        />
       </View>
     )
   }
@@ -111,6 +168,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     margin: 10,
   },
+  button: {
+    width: 80,
+  }
 });
 
 AppRegistry.registerComponent('ImDoingWhat', () => ImDoingWhat);
