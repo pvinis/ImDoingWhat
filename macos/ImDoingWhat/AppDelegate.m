@@ -57,7 +57,7 @@
     NSURL *sourceURL;
 
 #if DEBUG
-    sourceURL = [NSURL URLWithString:@"http://localhost:8081/index.macos.bundle?platform=macos&dev=true"];
+    sourceURL = [NSURL URLWithString:@"http://localhost:9988/index.macos.bundle?platform=macos&dev=true"];
 #else
     sourceURL = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
