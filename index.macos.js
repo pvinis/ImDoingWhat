@@ -19,7 +19,7 @@ import moment from 'moment'
 
 import TimerManager from './TimerManager'
 
-const STORAGE_TASK = '@ImDoingWhat:task'
+const STORAGE_TASKS = '@ImDoingWhat:tasks'
 
 class ImDoingWhat extends React.Component {
 
@@ -35,6 +35,8 @@ class ImDoingWhat extends React.Component {
       dbg: "start",
       started: false,
       paused: false,
+      listShown: false,
+      tasks: [],
     }
   }
 
@@ -77,8 +79,11 @@ class ImDoingWhat extends React.Component {
   }
 
   _startTimer() {
+    const { tasks, task } = this.state
+    const newTasks = [...tasks, task]
     this.setState({
       started: true,
+      tasks: newTasks,
     })
   }
 
@@ -111,7 +116,6 @@ class ImDoingWhat extends React.Component {
   _setTask(text) {
     this.setState({
       task: text,
-      startTime: +new Date(),
     })
   }
 
@@ -122,10 +126,33 @@ class ImDoingWhat extends React.Component {
     return timeFormat
   }
 
+  _toggleList() {
+    this.setState({
+      listShown: !this.state.listShown,
+    })
+  }
+
+  renderTaskList() {
+    if (!this.state.listShown) return null
+
+    return (
+      this.state.tasks.map((task) => {
+        return (
+          <Text
+            style={{color: Colors.Foreground, textAlign: 'center'}}
+            key={task}>
+            {task}
+          </Text>
+        )
+      })
+    )
+  }
+
   render() {
     return (
       <View style={styles.container}>
         <TextInput
+          onChange={(event) => this._setTask(event.nativeEvent.text) }
           style={styles.task}
         />
         <Text style={styles.timer}>
@@ -140,6 +167,12 @@ class ImDoingWhat extends React.Component {
         <Button style={styles.button} title='stop'
           onClick={() => this._stopTimer()}
         />
+        <View>
+          <Button style={styles.button} title={this.state.listShown ? 'hide list' : 'show list'}
+            onClick={() => this._toggleList()}
+          />
+          {this.renderTaskList()}
+        </View>
       </View>
     )
   }
